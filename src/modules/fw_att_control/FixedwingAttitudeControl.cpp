@@ -565,7 +565,7 @@ void FixedwingAttitudeControl::Run()
 						if (_battery_status_sub.updated()) {
 							battery_status_s battery_status{};
 
-							if (_battery_status_sub.copy(&battery_status)) {
+							if (_battery_status_sub.copy(&battery_status) && battery_status.connected) {
 								if (battery_status.scale > 0.0f) {
 									_battery_scale = battery_status.scale;
 								}
