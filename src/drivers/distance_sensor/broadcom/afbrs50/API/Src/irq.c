@@ -1,7 +1,10 @@
-
+#include <nuttx/arch.h>
 #include <nuttx/irq.h>
 
-static volatile irqstate_t irqstate_flags;
+#include <stdbool.h>
+
+static volatile irqstate_t g_irqstate_flags;
+static volatile bool locked = false;
 
 /*!***************************************************************************
 * @brief Enable IRQ Interrupts
@@ -10,7 +13,11 @@ static volatile irqstate_t irqstate_flags;
 *****************************************************************************/
 void IRQ_UNLOCK(void)
 {
-	leave_critical_section(irqstate_flags);
+	// do nothing if already in an interrupt context
+	if (!up_interrupt_context() && locked) {
+		locked = false;
+		leave_critical_section(g_irqstate_flags);
+	}
 }
 
 /*!***************************************************************************
@@ -20,5 +27,9 @@ void IRQ_UNLOCK(void)
 *****************************************************************************/
 void IRQ_LOCK(void)
 {
-	irqstate_flags = enter_critical_section();
+	// do nothing if already in an interrupt context
+	if (!up_interrupt_context() && !locked) {
+		g_irqstate_flags = enter_critical_section();
+		locked = true;
+	}
 }
